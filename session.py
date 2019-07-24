@@ -23,9 +23,9 @@ class Session(object):
 
     def __init__(self, aker_core, host, uuid):
         self.aker = aker_core
-        self.host = host
-        self.host_user = self.aker.user.name
-        self.host_port = int(self.aker.port)
+        self.host = host.fqdn
+        self.host_user = host.user if host.user else self.aker.user.name
+        self.host_port = host.ssh_port
         self.src_port = self.aker.config.src_port
         self.uuid = uuid
         logging.debug("Session: Base Session created")

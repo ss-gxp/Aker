@@ -61,7 +61,8 @@ class Json(IdP):
                             self._allowed_ssh_hosts[host.get("name")] = {
                                 'name': host.get("name"),
                                 'fqdn': host.get("hostname"),
-                                'ssh_port': host.get("port"),
+                                'ssh_port': host.get("port", 22),
+                                'user': host.get("user", None),
                                 'hostgroups': host.get("hostgroups")
                             }
 

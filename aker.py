@@ -135,25 +135,26 @@ class Aker(object):
         self.tui.draw()
         self.tui.start()
 
-    def init_connection(self, host):
+    def init_connection(self, name):
         screen_size = self.tui.loop.screen.get_cols_rows()
         logging.debug("Core: pausing TUI")
         self.tui.pause()
         # TODO: check for shorter yet unique uuid
         session_uuid = uuid.uuid4()
         session_start_time = time.strftime("%Y%m%d-%H%M%S")
+        host = self.user.allowed_ssh_hosts[name]
         session = SSHSession(self, host, session_uuid)
         # TODO: add err handling
         sniffer = SSHSniffer(
             self.posix_user,
             config.src_port,
-            host,
+            host.fqdn,
             session_uuid,
             screen_size)
         session.attach_sniffer(sniffer)
         logging.info(
-            "Core: Starting session UUID {0} for user {1} to host {2}".format(
-                session_uuid, self.posix_user, host))
+            "Core: Starting session UUID {0} for user {1} to host {4}@{2}:{3}".format(
+                session_uuid, self.posix_user, host.fqdn, host.ssh_port, host.user))
         session.connect(screen_size)
         try:
             session.start_session()
@@ -164,10 +165,12 @@ class Aker(object):
 
     def session_end_callback(self, session):
         logging.info(
-            "Core: Finished session UUID {0} for user {1} to host {2}".format(
+            "Core: Finished session UUID {0} for user {1} to host {4}@{2}:{3}".format(
                 session.uuid,
                 self.posix_user,
-                session.host))
+                session.host,
+                session.host_port,
+                session.host_user))
 
 
 if __name__ == '__main__':
