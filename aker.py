@@ -177,4 +177,8 @@ class Aker(object):
 
 
 if __name__ == '__main__':
-    Aker().build_tui()
+    try:
+        Aker().build_tui()
+    except Exception as e:
+        print e
+        logging.exception(e);
