@@ -110,7 +110,10 @@ class Aker(object):
         global config
         config = Configuration(config_file)
         self.config = config
-        self.posix_user = getpass.getuser()
+        try:
+            self.posix_user = os.environ['AKERUSER']
+        except:
+            self.posix_user = getpass.getuser()
         self.log_level = config.log_level
         self.port = config.ssh_port
 

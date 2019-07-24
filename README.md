@@ -154,6 +154,17 @@ Python Modules:
 		      
 	      * Edit /etc/aker/hosts.json to add users and hosts, a sample `hosts.json` file is provided .
 			
+### Configuration
+
+#### Shared account for aker host
+
+It is possible to use one system account identifying aker users by keys.
+But passing of environment variables by ssh must be disabled for security reasons.
+
+Add to `authorized_keys` before key:
+```
+environment="AKERUSER=username" ssh-rsa AAA...
+```
 	
 ### Contributing
 Currently I work on the code in my free time, any assistance is highly appreciated. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
