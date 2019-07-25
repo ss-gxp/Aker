@@ -31,6 +31,7 @@ from configparser import ConfigParser, NoOptionError
 import time
 import signal
 import sys
+import pyotp
 
 from hosts import Hosts
 import tui
@@ -114,6 +115,10 @@ class Aker(object):
             self.posix_user = os.environ['AKERUSER']
         except:
             self.posix_user = getpass.getuser()
+        try:
+            self.totp_secret = os.environ['AKERTOTP']
+        except:
+            self.totp_secret = None
         self.log_level = config.log_level
         self.port = config.ssh_port
 
@@ -135,8 +140,17 @@ class Aker(object):
     def build_tui(self):
         logging.debug("Core: Drawing TUI")
         self.tui = tui.Window(self)
+        if self.totp_secret:
+            self.tui.draw_totp()
+            self.tui.start()
         self.tui.draw()
         self.tui.start()
+
+    def validateTotp(self, code):
+        totp = pyotp.TOTP(self.totp_secret)
+        if not totp.verify(code):
+            logging.info('Wrong TOTP entered')
+            raise Exception("Core: Wrong TOTP")
 
     def init_connection(self, name):
         screen_size = self.tui.loop.screen.get_cols_rows()

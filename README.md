@@ -61,6 +61,7 @@ Python Modules:
 - wcwidth
 - pyte
 - redis
+- pyotp
 
 ### Installation
 
@@ -165,6 +166,15 @@ Add to `authorized_keys` before key:
 ```
 environment="AKERUSER=username" ssh-rsa AAA...
 ```
+
+#### TOTP
+
+To enable validation TOTP add to `authorized_keys` before key:
+
+```
+environment="AKERTOTP=secret-in-base32" ssh-rsa AAA...
+```
+
 	
 ### Contributing
 Currently I work on the code in my free time, any assistance is highly appreciated. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.

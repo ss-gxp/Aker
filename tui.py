@@ -195,6 +195,24 @@ class Window(object):
             ('SSH', 'dark blue', 'light gray', 'underline'),
             ('SSH_focus', 'light green', 'dark blue', 'standout')]  # Focus
 
+    def draw_totp(self):
+        self.screen = urwid.raw_display.Screen()
+        self.totp_input = urwid.Edit(
+            caption='TOTP: ',
+            multiline=False,
+            mask="*")
+        urwid.connect_signal(
+            self.totp_input,
+            'postchange',
+            self.enter_totp)
+        self.loop = urwid.MainLoop(urwid.Filler(self.totp_input, 'top'))
+
+    def enter_totp(self, a, b):
+        code = self.totp_input.get_edit_text()
+        if len(code) == 6:
+            self.aker.validateTotp(code)
+            self.stop()
+
     def draw(self):
         self.header_text = [
             ('key', "Aker"), " ",
