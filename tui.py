@@ -13,6 +13,9 @@ import aker
 import signal
 import logging
 import os
+import re
+import pyotp
+import qrcode
 from popup import SimplePopupLauncher
 
 
@@ -132,7 +135,7 @@ class Header(urwid.Columns):
         self.header_map.original_widget.set_text(self.text)
 
     def popup_message(self, message):
-        logging.debug("TUI: popup message is {0}".format(message))
+        logging.debug(u"TUI: popup message is {0}".format(message))
         self.popup.message = str(message)
         self.popup.open_pop_up()
 
@@ -166,7 +169,7 @@ class MenuItem(urwid.Text):
         return True
 
     def get_caption(self):
-        return str(self.caption)
+        return self.caption
 
 
 class Window(object):
@@ -194,24 +197,6 @@ class Window(object):
             ('msg', 'yellow', 'dark gray'),
             ('SSH', 'dark blue', 'light gray', 'underline'),
             ('SSH_focus', 'light green', 'dark blue', 'standout')]  # Focus
-
-    def draw_totp(self):
-        self.screen = urwid.raw_display.Screen()
-        self.totp_input = urwid.Edit(
-            caption='TOTP: ',
-            multiline=False,
-            mask="*")
-        urwid.connect_signal(
-            self.totp_input,
-            'postchange',
-            self.enter_totp)
-        self.loop = urwid.MainLoop(urwid.Filler(self.totp_input, 'top'))
-
-    def enter_totp(self, a, b):
-        code = self.totp_input.get_edit_text()
-        if len(code) == 6:
-            self.aker.validateTotp(code)
-            self.stop()
 
     def draw(self):
         self.header_text = [
@@ -282,7 +267,7 @@ class Window(object):
                 self.update_lists()
             elif key == 'f9':
                 logging.info(
-                    "TUI: User {0} logging out of Aker".format(
+                    u"TUI: User {0} logging out of Aker".format(
                         self.user.name))
                 raise urwid.ExitMainLoop()
             elif key == 'left':
@@ -294,29 +279,29 @@ class Window(object):
                     self.topframe.set_body(self.hostgrouplist.get_box())
             else:
                 logging.debug(
-                    "TUI: User {0} unhandled input : {1}".format(
+                    u"TUI: User {0} unhandled input : {1}".format(
                         self.user.name, key))
 
     def group_search_handler(self, search, search_text):
         logging.debug(
-            "TUI: Group search handler called with text {0}".format(search_text))
+            u"TUI: Group search handler called with text {0}".format(search_text))
         matchinghostgroups = []
         for hostgroup in self.user.hostgroups.keys():
-            if search_text in hostgroup:
+            if re.search(search_text, hostgroup, re.IGNORECASE):
                 logging.debug(
-                    "TUI: hostgroup {1} matches search text {0}".format(
+                    u"TUI: hostgroup {1} matches search text {0}".format(
                         search_text, hostgroup))
                 matchinghostgroups.append(hostgroup)
         self.hostgrouplist.updatelist(matchinghostgroups)
 
     def host_search_handler(self, search, search_text):
         logging.debug(
-            "TUI: Host search handler called with text {0}".format(search_text))
+            u"TUI: Host search handler called with text {0}".format(search_text))
         matchinghosts = []
         for host in self.user.hostgroups[self.current_hostgroup].hosts:
-            if search_text in host:
+            if re.search(search_text, host, re.IGNORECASE):
                 logging.debug(
-                    "TUI: host {1} matches search text {0}".format(
+                    u"TUI: host {1} matches search text {0}".format(
                         search_text, host))
                 matchinghosts.append(host)
         self.hostlist.updatelist(sorted(matchinghosts))
@@ -330,7 +315,7 @@ class Window(object):
         matchinghosts = []
         for host in self.user.hostgroups[self.current_hostgroup].hosts:
             logging.debug(
-                "TUI: host {1} is in hostgroup {0}, adding".format(
+                u"TUI: host {1} is in hostgroup {0}, adding".format(
                     hostgroup, host))
             matchinghosts.append(host)
         self.hostlist.updatelist(sorted(matchinghosts))
@@ -350,7 +335,7 @@ class Window(object):
 
     def update_lists(self):
         logging.info(
-            "TUI: Refreshing entries for user {0}".format(
+            u"TUI: Refreshing entries for user {0}".format(
                 self.aker.user.name))
         self.aker.user.refresh_allowed_hosts(False)
         self.hostgrouplist.empty()

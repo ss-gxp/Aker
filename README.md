@@ -62,6 +62,9 @@ Python Modules:
 - pyte
 - redis
 - pyotp
+- urllib
+- qrcode
+- hashlib
 
 ### Installation
 
@@ -169,11 +172,16 @@ environment="AKERUSER=username" ssh-rsa AAA...
 
 #### TOTP
 
-To enable validation TOTP add to `authorized_keys` before key:
+To enable validation TOTP add to `General` params:
 
 ```
-environment="AKERTOTP=secret-in-base32" ssh-rsa AAA...
+[General]
+totp_enabled = 1
+totp_file = /etc/aker/totp/{0}.json
+totp_issuer = "Name"
 ```
+
+When the user first logs in, the TOTP code is generated.
 
 	
 ### Contributing

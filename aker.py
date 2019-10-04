@@ -32,9 +32,12 @@ import time
 import signal
 import sys
 import pyotp
+import hashlib
 
 from hosts import Hosts
 import tui
+import tui_totp_reg
+import tui_totp
 from session import SSHSession
 from snoop import SSHSniffer
 
@@ -111,14 +114,31 @@ class Aker(object):
         global config
         config = Configuration(config_file)
         self.config = config
+
         try:
             self.posix_user = os.environ['AKERUSER']
         except:
             self.posix_user = getpass.getuser()
+
         try:
-            self.totp_secret = os.environ['AKERTOTP']
+            totp_enabled = self.config.get("General", "totp_enabled", "0")
+            if totp_enabled != "0":
+                self.totp_enabled = True
+            else:
+                self.totp_enabled = False
         except:
-            self.totp_secret = None
+            self.totp_enabled = true
+
+        if self.totp_enabled:
+            self.totp_file = self.config.get("General", "totp_file", "").format(hashlib.sha256(self.posix_user).hexdigest())
+            self.totp_issuer = self.config.get("General", "totp_issuer", "Aker")
+            try:
+                fp = open(self.totp_file, 'r')
+                self.totp_secret = fp.read()
+                fp.close()
+            except:
+                self.totp_secret = None
+
         self.log_level = config.log_level
         self.port = config.ssh_port
 
@@ -139,10 +159,18 @@ class Aker(object):
 
     def build_tui(self):
         logging.debug("Core: Drawing TUI")
+
+        if self.totp_enabled:
+            if not self.totp_secret:
+                self.tui = tui_totp_reg.Window(self)
+                self.tui.draw(self.totp_issuer)
+                self.tui.start()
+            else:
+                self.tui = tui_totp.Window(self)
+                self.tui.draw()
+                self.tui.start()
+
         self.tui = tui.Window(self)
-        if self.totp_secret:
-            self.tui.draw_totp()
-            self.tui.start()
         self.tui.draw()
         self.tui.start()
 
@@ -151,6 +179,16 @@ class Aker(object):
         if not totp.verify(code):
             logging.info('Wrong TOTP entered')
             raise Exception("Core: Wrong TOTP")
+
+    def validateTotpAndReg(self, totp_secret, code):
+        totp = pyotp.TOTP(totp_secret)
+        if not totp.verify(code):
+            logging.info('Wrong TOTP entered')
+            raise Exception("Core: Wrong TOTP")
+        fp = open(self.totp_file, 'w')
+        fp.write(totp_secret)
+        fp.close()
+        self.totp_secret = totp_secret
 
     def init_connection(self, name):
         screen_size = self.tui.loop.screen.get_cols_rows()
