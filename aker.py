@@ -124,7 +124,7 @@ class Aker(object):
             else:
                 self.totp_enabled = False
         except:
-            self.totp_enabled = true
+            self.totp_enabled = True
 
         if self.totp_enabled:
             self.totp_file = self.config.get("General", "totp_file", "").format(hashlib.sha256(self.posix_user).hexdigest())
