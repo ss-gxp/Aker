@@ -21,11 +21,11 @@ class Listing(urwid.ListBox):
 
     def __init__(self, items=None):
         self.search = Search()
-        self.search.update_text("Type to search:\n")
+        self.search.set_caption("Type to search:\n")
         self._items = []
         if items is not None:
             for item in items:
-                listitem = MenuItem("%s" % (item))
+                listitem = MenuItem("%s" % item)
                 self._items.append(
                     urwid.AttrMap(
                         listitem,
@@ -39,7 +39,7 @@ class Listing(urwid.ListBox):
             self.add_item(item)
 
     def add_item(self, item):
-        listitem = MenuItem("%s" % (item))
+        listitem = MenuItem("%s" % item)
         self.body.append(
             urwid.AttrMap(
                 listitem,
@@ -145,9 +145,6 @@ class Search(urwid.Edit):
     def __init__(self):
         super(Search, self).__init__()
 
-    def update_text(self, caption):
-        self.set_caption(caption)
-
     def clear(self):
         self.set_edit_text("")
 
@@ -178,9 +175,14 @@ class Window(object):
         self.aker = aker_core
         self.user = self.aker.user
         self.current_hostgroup = ""
-        self.set_palette()
+        self.header = None
+        self.footer = None
+        self.hostgrouplist = None
+        self.hostlist = None
+        self.topframe = None
+        self.screen = None
+        self.loop = None
 
-    def set_palette(self):
         self.palette = [
             ('body', 'black', 'light gray'),  # Normal Text
             ('focus', 'light green', 'black', 'standout'),  # Focus
@@ -193,7 +195,6 @@ class Window(object):
             ('SSH', 'dark blue', 'light gray', 'underline'),
             ('SSH_focus', 'light green', 'dark blue', 'standout')]  # Focus
 
-    def draw(self):
         self.header_text = [
             ('key', "Aker"), " ",
             ('msg', "User:"),
@@ -216,6 +217,7 @@ class Window(object):
             ('msg', "By:"),
             ('key', "Ahmed Nazmy")]
 
+    def draw(self):
         # Define widgets
         self.header = Header(self.header_text)
         self.footer = Footer(self.footer_text)

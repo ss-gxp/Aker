@@ -3,6 +3,7 @@
 import urwid
 import logging
 
+
 class Window(object):
     """
     Where all the Tui magic happens,
@@ -13,6 +14,9 @@ class Window(object):
     def __init__(self, aker_core):
         self.aker = aker_core
         self.user = self.aker.user
+        self.screen = None
+        self.totp_input = None
+        self.loop = None
 
     def draw(self):
         self.screen = urwid.raw_display.Screen()
@@ -29,7 +33,7 @@ class Window(object):
     def enter_totp(self, a, b):
         code = self.totp_input.get_edit_text()
         if len(code) == 6:
-            self.aker.validateTotp(code)
+            self.aker.validate_totp(code)
             self.stop()
 
     def start(self):

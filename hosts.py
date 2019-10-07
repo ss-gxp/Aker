@@ -26,7 +26,7 @@ class HostGroup(object):
         self.hosts = []
 
     def __str__(self):
-        return "fqdn:%s, hosts:%s" % (self.fqdn, self.ssh_port, self.hosts)
+        return "fqdn:%s, hosts:%s" % (self.name, self.hosts)
 
     def __iter__(self):
         return self
@@ -89,10 +89,12 @@ class Hosts(object):
         self.idp = IdPFactory.getIdP(idp)(config, username, gateway_hostgroup)
         # TODO: do we need a configurable redis host?
         self.redis = self._init_redis_conn('localhost')
+        self._backend_hosts = None
 
-    def _init_redis_conn(self, RedisHost):
+    @staticmethod
+    def _init_redis_conn(redis_host):
         redis_connection = redis.StrictRedis(
-            RedisHost, db=0, decode_responses=True)
+            redis_host, db=0, decode_responses=True)
         try:
             if redis_connection.ping():
                 return redis_connection
@@ -159,7 +161,6 @@ class Hosts(object):
                 logging.debug(
                     "Hosts: adding host {0} to cache".format(
                         host.name))
-                hostentry = None
             except Exception as e:
                 logging.error(
                     "Hosts: error saving to cache : {0}".format(

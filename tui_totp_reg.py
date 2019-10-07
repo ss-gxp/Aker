@@ -6,6 +6,7 @@ import pyotp
 import qrcode
 import StringIO
 
+
 class Window(object):
     """
     Where all the Tui magic happens,
@@ -16,6 +17,10 @@ class Window(object):
     def __init__(self, aker_core):
         self.aker = aker_core
         self.user = self.aker.user
+        self.totp_reg = None
+        self.screen = None
+        self.totp_input = None
+        self.loop = None
 
     def draw(self, issuer):
         self.totp_reg = pyotp.random_base32()
@@ -30,7 +35,7 @@ class Window(object):
         self.screen = urwid.raw_display.Screen()
 
         self.totp_input = urwid.Edit(
-            caption= s_qr + '\n\n' + url + '\n\nWelcome! You must enable TOTP, scan QR with app and enter code: ',
+            caption=s_qr + '\n\n' + url + '\n\nWelcome! You must enable TOTP, scan QR with app and enter code: ',
             multiline=False,
             mask="*")
         urwid.connect_signal(
@@ -43,7 +48,7 @@ class Window(object):
     def enter_totp(self, a, b):
         code = self.totp_input.get_edit_text()
         if len(code) == 6:
-            self.aker.validateTotpAndReg(self.totp_reg, code)
+            self.aker.validate_totp_and_reg(self.totp_reg, code)
             self.stop()
 
     def start(self):

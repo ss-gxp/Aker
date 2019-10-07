@@ -11,8 +11,6 @@ __author__ = 'Ahmed Nazmy <ahmed@nazmy.io>'
 
 import logging
 import importlib
-import sys
-import os
 
 
 class IdPFactory(object):
@@ -31,6 +29,7 @@ class IdPFactory(object):
             logging.error(
                 "IdPFactory: error loading module : {0}".format(
                     e.message))
+            raise e
 
         return idp_class
 

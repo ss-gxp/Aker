@@ -23,11 +23,12 @@ class Sniffer(object):
     Captures session IO to files
     """
 
-    def __init__(self, user, src_port, host, uuid, screen_size):
+    def __init__(self, config, user, host, uuid, screen_size):
         self.user = user
         self.host = host
         self.uuid = uuid
-        self.src_port = src_port
+        self.src_port = config.src_port
+        self.session_log_dir = config.session_log_dir
         self.log_file = None
         self.log_timer = None
         self.log_cmds = None
@@ -48,7 +49,7 @@ class Sniffer(object):
             "Sniffer: Creating Pyte screen with cols %i and rows %i" %
             (self.term_cols, self.term_rows))
         self.screen = pyte.Screen(self.term_cols, self.term_rows)
-        self.stream = pyte.ByteStream()
+        self.stream = pyte.Stream()
         self.stream.attach(self.screen)
 
     def extract_command(self, buf):
@@ -67,7 +68,7 @@ class Sniffer(object):
             output = "".join(
                 [l for l in self.screen.display if len(l.strip()) > 0]).strip()
             # for line in reversed(self.screen.buffer):
-            #output = "".join(map(operator.attrgetter("data"), line)).strip()
+            # output = "".join(map(operator.attrgetter("data"), line)).strip()
             logging.debug("output is %s" % output)
             command = self.ps1_parser(output)
         except Exception as e:
@@ -78,18 +79,19 @@ class Sniffer(object):
         self.screen.reset()
         return command
 
-    def ps1_parser(self, command):
+    @staticmethod
+    def ps1_parser(command):
         """
         Extract commands from PS1 or mysql>
         """
         result = None
-        match = re.compile('\[?.*@.*\]?[\$#]\s').split(command)
+        match = re.compile('\\[?.*@.*\\]?[$#]\\s').split(command)
         logging.debug("Sniffer: command match is %s" % match)
         if match:
             result = match[-1].strip()
         else:
             # No PS1, try finding mysql
-            match = re.split('mysql>\s', command)
+            match = re.split('mysql>\\s', command)
             logging.debug("Sniffer: command match is %s" % match)
             if match:
                 result = match[-1].strip()
@@ -116,9 +118,8 @@ class Sniffer(object):
 
     def set_logs(self):
         # local import
-        from aker import session_log_dir
         today_sessions_dir = os.path.join(
-            session_log_dir, self.session_start_date)
+            self.session_log_dir, self.session_start_date)
         log_file_path = os.path.join(today_sessions_dir, self.session_log)
         try:
             os.makedirs(today_sessions_dir, 0o777)
@@ -132,8 +133,9 @@ class Sniffer(object):
             log_file = open(log_file_path + '.log', 'a')
             log_timer = open(log_file_path + '.timer', 'a')
             log_cmds = log_file_path + '.cmds'
-        except IOError:
+        except IOError as e:
             logging.debug("Sniffer: set_logs IO error {0} ".format(e.message))
+            raise e
 
         log_file.write('Session Start %s\r\n' % self.session_date_time)
         self.log_file = log_file
@@ -165,17 +167,17 @@ class Sniffer(object):
             self.log_file.write('Session End %s' % session_end)
             self.log_file.close()
             self.log_timer.close()
-        except:
+        except Exception:
             logging.debug("Sniffer: Failed to close files. Likely due to a session close before establishing.")
 
 
 class SSHSniffer(Sniffer):
-    def __init__(self, user, src_port, host, uuid, screen_size):
+    def __init__(self, config, user, host, uuid, screen_size):
         super(
             SSHSniffer,
             self).__init__(
+            config,
             user,
-            src_port,
             host,
             uuid,
             screen_size)
@@ -187,8 +189,8 @@ class SSHSniffer(Sniffer):
         self.vim_data = ""
         self.before_timestamp = time.time()
         self.start_timestamp = self.before_timestamp
-        self.start_alt_mode = set(['\x1b[?47h', '\x1b[?1049h', '\x1b[?1047h'])
-        self.end_alt_mode = set(['\x1b[?47l', '\x1b[?1049l', '\x1b[?1047l'])
+        self.start_alt_mode = {'\x1b[?47h', '\x1b[?1049h', '\x1b[?1047h'}
+        self.end_alt_mode = {'\x1b[?47l', '\x1b[?1049l', '\x1b[?1047l'}
         self.alt_mode_flags = tuple(
             self.start_alt_mode) + tuple(self.end_alt_mode)
 
@@ -259,7 +261,6 @@ class SSHSniffer(Sniffer):
                         logging.error(
                             "Sniffer: stdin_filter error {0} ".format(
                                 e.message))
-                    jsonmsg = {}
 
             self.buf = ""
             self.vim_data = ""

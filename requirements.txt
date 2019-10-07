@@ -3,3 +3,5 @@ urwid
 paramiko
 redis
 wcwidth
+pyotp
+qrcode

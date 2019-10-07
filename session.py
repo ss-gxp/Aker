@@ -9,9 +9,6 @@ __author__ = 'Ahmed Nazmy <ahmed@nazmy.io>'
 
 
 import logging
-import signal
-import os
-import time
 import getpass
 from SSHClient import SSHClient
 
@@ -28,6 +25,7 @@ class Session(object):
         self.host_port = host.ssh_port
         self.src_port = self.aker.config.src_port
         self.uuid = uuid
+        self._client = None
         logging.debug("Session: Base Session created")
 
     def attach_sniffer(self, sniffer):
@@ -72,5 +70,5 @@ class SSHSession(Session):
                 raise
         try:
             self._client.start_session(self.host_user, auth_secret)
-        except:
+        except Exception:
             logging.debug("Session: SSHSession failed")

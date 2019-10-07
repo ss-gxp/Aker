@@ -10,14 +10,13 @@ __author__ = 'Ahmed Nazmy <ahmed@nazmy.io>'
 
 import sys
 from contextlib import closing
-from math import ceil
 import time
-import os
 import codecs
 import os
 import fnmatch
 import argparse
 import json
+from config import Configuration
 
 
 parser = argparse.ArgumentParser(description="Aker session reply")
@@ -44,18 +43,18 @@ group.add_argument(
 
 
 def main(argv):
-    from aker import session_log_dir
+    config = Configuration()
     args = parser.parse_args()
     session_uuid = args.uuid
     log_file = "*" + session_uuid + "*" + ".log"
     log_timer = "*" + session_uuid + "*" + ".timer"
     cmds_file = "*" + session_uuid + "*" + ".cmds"
-    logfile_path = locate(log_file, session_log_dir)
-    timefile_path = locate(log_timer, session_log_dir)
+    logfile_path = locate(log_file, config.session_log_dir)
+    timefile_path = locate(log_timer, config.session_log_dir)
     if args.replay:
         replay(logfile_path, timefile_path)
     elif args.cmds:
-        cmds_filepath = locate(cmds_file, session_log_dir)
+        cmds_filepath = locate(cmds_file, config.session_log_dir)
         show_cmds(cmds_filepath)
 
 

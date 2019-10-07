@@ -17,10 +17,9 @@ import signal
 import select
 import os
 import errno
-import time
 import fcntl
 import getpass
-
+import struct
 
 TIME_OUT = 10
 
@@ -42,21 +41,22 @@ class Client(object):
         cols, lines = 80, 24
         try:
             fmt = 'HH'
-            buffer = struct.pack(fmt, 0, 0)
+            size_buffer = struct.pack(fmt, 0, 0)
             result = fcntl.ioctl(
                 sys.stdout.fileno(),
                 termios.TIOCGWINSZ,
-                buffer)
-            columns, lines = struct.unpack(fmt, result)
+                size_buffer)
+            cols, lines = struct.unpack(fmt, result)
         except Exception as e:
+            logging.error(e.message)
             pass
-        finally:
-            return columns, lines
+        return cols, lines
 
 
 class SSHClient(Client):
     def __init__(self, session):
         super(SSHClient, self).__init__(session)
+        self._size = None
         self._socket = None
         self.channel = None
         logging.debug("Client: Client Created")
@@ -75,6 +75,7 @@ class SSHClient(Client):
         return transport
 
     def start_session(self, user, auth_secret):
+        transport = None
         try:
             transport = self.get_transport()
             if isinstance(auth_secret, basestring):
@@ -130,8 +131,8 @@ class SSHClient(Client):
         transport.close()
         self._socket.close()
 
-    def sigwinch(self, signal, data):
-        columns, lines = get_console_dimensions()
+    def sigwinch(self, signum, data):
+        columns, lines = self.get_console_dimensions()
         logging.debug(
             "SSHClient: setting terminal to %s columns and %s lines" %
             (columns, lines))
@@ -153,6 +154,10 @@ class SSHClient(Client):
             while True:
                 try:
                     r, w, e = select.select([chan, sys.stdin], [], [])
+                except Exception as e:
+                    logging.error(e)
+                    continue
+                try:
                     flag = fcntl.fcntl(sys.stdin, fcntl.F_GETFL, 0)
                     fcntl.fcntl(
                         sys.stdin.fileno(),
@@ -184,13 +189,14 @@ class SSHClient(Client):
                 if sys.stdin in r:
                     try:
                         buf = os.read(sys.stdin.fileno(), 4096)
+                        try:
+                            for sniffer in self.sniffers:
+                                sniffer.stdin_filter(buf)
+                        finally:
+                            chan.send(buf)
                     except OSError as e:
                         logging.error(e)
                         pass
-                    for sniffer in self.sniffers:
-                        sniffer.stdin_filter(buf)
-
-                    chan.send(buf)
 
         finally:
             logging.debug("SSHClient: interactive session ending")
