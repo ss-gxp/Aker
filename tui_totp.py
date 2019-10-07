@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import urwid
-import aker
-import signal
 import logging
-import os
-import re
-import pyotp
-from popup import SimplePopupLauncher
 
 class Window(object):
     """

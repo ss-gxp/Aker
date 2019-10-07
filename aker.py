@@ -22,15 +22,12 @@ __license_info__ = {
 
 import logging
 import os
-import sys
 import uuid
 import getpass
 import paramiko
-import socket
 from configparser import ConfigParser, NoOptionError
 import time
 import signal
-import sys
 import pyotp
 import hashlib
 
@@ -233,4 +230,4 @@ if __name__ == '__main__':
         Aker().build_tui()
     except Exception as e:
         print e
-        logging.exception(e);
+        logging.exception(e)

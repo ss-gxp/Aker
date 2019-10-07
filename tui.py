@@ -9,13 +9,8 @@ __author__ = 'Ahmed Nazmy <ahmed@nazmy.io>'
 
 
 import urwid
-import aker
-import signal
 import logging
-import os
 import re
-import pyotp
-import qrcode
 from popup import SimplePopupLauncher
 
 
