@@ -47,4 +47,4 @@ class Configuration(object):
             return self.configparser.get('General', args[0])
 
     def __get_color(self, name, def_fore, def_back, opt=''):
-        return name, self.get('Palette', 'name_fg', def_fore), self.get('Palette', 'name_bg', def_back), self.get('Palette', 'name_opt', opt)
+        return name, self.get('Palette', name + '_fg', def_fore), self.get('Palette', name + '_bg', def_back), self.get('Palette', name + '_opt', opt)
