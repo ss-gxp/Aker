@@ -2,7 +2,7 @@
 import os
 import uuid
 
-from backports.configparser import ConfigParser, NoOptionError
+from backports.configparser import ConfigParser, NoOptionError, NoSectionError
 
 
 class Configuration(object):
@@ -39,7 +39,7 @@ class Configuration(object):
         if len(args) == 3:
             try:
                 return self.configparser.get(args[0], args[1])
-            except NoOptionError:
+            except (NoSectionError, NoOptionError):
                 return args[2]
         if len(args) == 2:
             return self.configparser.get(args[0], args[1])
