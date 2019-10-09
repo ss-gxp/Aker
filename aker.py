@@ -177,13 +177,16 @@ class Aker(object):
         logging.info(
             "Core: Starting session UUID {0} for user {1} to host {4}@{2}:{3}".format(
                 session_uuid, self.posix_user, host.fqdn, host.ssh_port, host.user))
-        session.connect(screen_size)
         try:
-            session.start_session()
-        finally:
-            session.stop_sniffer()
-            self.tui.restore()
-            self.tui.hostlist.search.clear()  # Clear selected hosts
+            session.connect(screen_size)
+            try:
+                session.start_session()
+            finally:
+                session.stop_sniffer()
+                self.tui.restore()
+                self.tui.hostlist.search.clear()  # Clear selected hosts
+        except Exception as e:
+            logging.error(e)
 
     def session_end_callback(self, session):
         logging.info(
