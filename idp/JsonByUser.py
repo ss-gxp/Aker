@@ -6,6 +6,7 @@
 from IdPFactory import IdP
 import json
 import logging
+import hashlib
 
 
 class JsonByUser(IdP):
@@ -22,7 +23,7 @@ class JsonByUser(IdP):
 
     def _init_json_config(self):
         # Load the configration from the already intitialised config parser
-        hosts_file = self.config.get("General", "hosts_file", "hosts.json").format(self.posix_user)
+        hosts_file = self.config.get("General", "hosts_file", "hosts.json").format(hashlib.sha256(self.posix_user).hexdigest())
         try:
             JSON = json.load(open(hosts_file, 'r'))
         except Exception as e:
