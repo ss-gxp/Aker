@@ -21,6 +21,19 @@ class Configuration(object):
         self.log_level = self.get('General', 'log_level', 'INFO')
         self.log_file = self.get('General', 'log_file', '/var/log/aker/aker.log')
         self.log_format = self.get('General', 'log_format', '%(asctime)s - %(levelname)s - %(message)s')
+        self.realm = self.get('General', 'realm', 'Aker')
+
+        self.palette = [
+            self.__get_color('body', 'black', 'light gray'),  # Normal Text
+            self.__get_color('focus', 'light green', 'black', 'standout'),  # Focus
+            self.__get_color('head', 'white', 'dark gray', 'standout'),  # Header
+            self.__get_color('foot', 'light gray', 'dark gray'),  # Footer Separator
+            self.__get_color('key', 'light green', 'dark gray', 'bold'),
+            self.__get_color('title', 'white', 'black', 'bold'),
+            self.__get_color('popup', 'white', 'dark red'),
+            self.__get_color('msg', 'yellow', 'dark gray'),
+            self.__get_color('SSH', 'dark blue', 'light gray', 'underline'),
+            self.__get_color('SSH_focus', 'light green', 'dark blue', 'standout')]  # Focus
 
     def get(self, *args):
         if len(args) == 3:
@@ -32,3 +45,6 @@ class Configuration(object):
             return self.configparser.get(args[0], args[1])
         else:
             return self.configparser.get('General', args[0])
+
+    def __get_color(self, name, def_fore, def_back, opt=None):
+        return name, self.get('Palette', 'name_fg', def_fore), self.get('Palette', 'name_bg', def_back), self.get('Palette', 'name_opt', opt)

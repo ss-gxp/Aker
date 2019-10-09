@@ -102,7 +102,6 @@ class Aker(object):
             except Exception:
                 self.totp_secret = None
 
-        self.log_level = config.log_level
         self.port = config.ssh_port
 
         logging.info(

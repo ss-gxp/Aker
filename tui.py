@@ -183,20 +183,10 @@ class Window(object):
         self.screen = None
         self.loop = None
 
-        self.palette = [
-            ('body', 'black', 'light gray'),  # Normal Text
-            ('focus', 'light green', 'black', 'standout'),  # Focus
-            ('head', 'white', 'dark gray', 'standout'),  # Header
-            ('foot', 'light gray', 'dark gray'),  # Footer Separator
-            ('key', 'light green', 'dark gray', 'bold'),
-            ('title', 'white', 'black', 'bold'),
-            ('popup', 'white', 'dark red'),
-            ('msg', 'yellow', 'dark gray'),
-            ('SSH', 'dark blue', 'light gray', 'underline'),
-            ('SSH_focus', 'light green', 'dark blue', 'standout')]  # Focus
+        self.palette = self.aker.config.palette
 
         self.header_text = [
-            ('key', "Aker"), " ",
+            ('key', self.aker.config.realm), " ",
             ('msg', "User:"),
             ('key', "%s" % self.user.name), " "]
 
@@ -213,9 +203,7 @@ class Window(object):
             ('msg', "Refresh:"),
             ('key', "F5"), " ",
             ('msg', "Quit:"),
-            ('key', "F9"), " ",
-            ('msg', "By:"),
-            ('key', "Ahmed Nazmy")]
+            ('key', "F9")]
 
     def draw(self):
         # Define widgets
@@ -317,7 +305,7 @@ class Window(object):
             matchinghosts.append(host)
         self.hostlist.updatelist(sorted(matchinghosts))
         header_text = [
-            ('key', "Aker"), " ",
+            ('key', self.aker.config.realm), " ",
             ('msg', "User:"),
             ('key', "%s" % self.user.name), " ",
             ('msg', "HostGroup:"),
