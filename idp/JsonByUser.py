@@ -19,9 +19,8 @@ class JsonByUser(IdP):
         logging.info("JsonByUser: loaded")
         self.config = config
         self.posix_user = username
-        self._init_json_config()
 
-    def _init_json_config(self):
+    def _load_json_config(self):
         # Load the configration from the already intitialised config parser
         hosts_file = self.config.get("General", "hosts_file", "hosts.json").format(hashlib.sha256(self.posix_user).hexdigest())
         try:
@@ -33,28 +32,21 @@ class JsonByUser(IdP):
             raise Exception("Access denied")
 
         logging.debug("Json: loading all hosts from {0}".format(hosts_file))
-        self._all_ssh_hosts = JSON["hosts"]
-        self._allowed_ssh_hosts = {}
-        self._load_user_allowed_hosts()
+        ssh_hosts = JSON["hosts"]
 
-    def _load_user_allowed_hosts(self):
-        """
-        Fetch the allowed hosts based usergroup/hostgroup membership
-        """
-        for host in self._all_ssh_hosts:
+        result = {}
+        for host in ssh_hosts:
             logging.debug(
                 u"Json: loading host {0} for user {1}".format(
                     host.get("name"), self.posix_user))
-            self._allowed_ssh_hosts[host.get("name")] = {
+            result[host.get("name")] = {
                 'name': host.get("name"),
                 'fqdn': host.get("hostname"),
                 'ssh_port': host.get("port", 22),
                 'user': host.get("user", None),
                 'hostgroups': host.get("hostgroups")
             }
+        return result
 
     def list_allowed(self):
-        # is our list empty ?
-        if not self._allowed_ssh_hosts:
-            self._load_user_allowed_hosts()
-        return self._allowed_ssh_hosts
+        return self._load_json_config()
